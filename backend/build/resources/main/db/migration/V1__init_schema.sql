@@ -1,4 +1,4 @@
 CREATE TABLE hello_message (
-    id BIGSERIAL PRIMARY KEY,
+    id SERIAL PRIMARY KEY,
     message VARCHAR(255) NOT NULL
 );
