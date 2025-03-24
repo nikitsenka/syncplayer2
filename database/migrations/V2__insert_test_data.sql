@@ -1,0 +1,1 @@
+INSERT INTO hello_message (message) VALUES ('Test message from DB');
