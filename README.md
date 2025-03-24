@@ -20,6 +20,8 @@ syncplayer/
 
 ## Getting Started
 
+> **Note:** The frontend is configured to proxy API requests to the backend server running on port 8080. Make sure the backend is running before starting the frontend.
+
 ### Database Setup
 
 1. Navigate to the database directory:
