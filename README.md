@@ -32,6 +32,11 @@ syncplayer/
    docker-compose up -d
    ```
 
+3. If you encounter migration issues (checksum mismatches), you can reset the database:
+   ```
+   ./clean-db.sh
+   ```
+
 ### Backend Setup
 
 1. Navigate to the backend directory:
