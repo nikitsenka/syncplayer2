@@ -1,39 +1,16 @@
-# Dependencies
-node_modules/
-.pnp
-.pnp.js
+# Ignore all node_modules
+**/node_modules/
 
-# Testing
-coverage/
+# Ignore .gradle
+**/.gradle/
 
-# Production
-build/
-dist/
-target/
+# Ignore build directories
+**/build/
 
-# Gradle
-.gradle/
-gradle/
-gradlew
-gradlew.bat
-build/
-
-# IDE
+# Ignore IDE files
 .idea/
 *.iml
-*.iws
-*.ipr
-.vscode/
-*.swp
-*.swo
 
 # Misc
 .DS_Store
-.env.local
-.env.development.local
-.env.test.local
-.env.production.local
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
 *.log
