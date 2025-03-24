@@ -25,7 +25,7 @@ public class HelloControllerTest {
     @Test
     public void testGetHello() throws Exception {
         // Given
-        HelloMessage message = new HelloMessage(1L, "Test message from DB");
+        HelloMessage message = new HelloMessage(1, "Test message from DB");
         when(helloMessageService.getHelloMessage()).thenReturn(message);
 
         // When/Then
