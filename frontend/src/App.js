@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import './App.css';
+import AudioPlayer from './components/AudioPlayer/AudioPlayer';
 
 function App() {
   const [message, setMessage] = useState('Loading...');
@@ -24,6 +25,8 @@ function App() {
       <header className="App-header">
         <h1>SyncPlayer</h1>
         <p>{message}</p>
+        {/* Integrate Audio Player Component */}
+        <AudioPlayer />
       </header>
     </div>
   );
