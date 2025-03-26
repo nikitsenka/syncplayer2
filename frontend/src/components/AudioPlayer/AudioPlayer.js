@@ -7,13 +7,81 @@ const AudioPlayer = () => {
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
   const [volume, setVolume] = useState(1);
+  const [albumArt, setAlbumArt] = useState(null);
   const audioRef = useRef(null);
   
+  // Extract album art from audio file
+  const extractAlbumArt = (file) => {
+    return new Promise((resolve) => {
+      // Create a new FileReader
+      const reader = new FileReader();
+      
+      reader.onload = function(e) {
+        const result = e.target.result;
+        
+        // For MP3 files (ID3 tags)
+        if (file.type === 'audio/mpeg' || file.type === 'audio/mp3') {
+          try {
+            // Look for the APIC frame which contains the album art
+            const uint8Array = new Uint8Array(result);
+            let offset = 0;
+            
+            // Search for ID3 header
+            while (offset < uint8Array.length - 10) {
+              // Look for 'APIC' frame
+              if (uint8Array[offset] === 65 && uint8Array[offset + 1] === 80 && 
+                  uint8Array[offset + 2] === 73 && uint8Array[offset + 3] === 67) {
+                
+                // Skip to the image data
+                let imgOffset = offset + 10;
+                
+                // Skip text encoding (1 byte), MIME type, description, and picture type
+                while (imgOffset < uint8Array.length && uint8Array[imgOffset] !== 0) imgOffset++;
+                imgOffset++; // Skip null terminator
+                
+                // Skip MIME type
+                while (imgOffset < uint8Array.length && uint8Array[imgOffset] !== 0) imgOffset++;
+                imgOffset++; // Skip null terminator
+                
+                // Skip description
+                while (imgOffset < uint8Array.length && uint8Array[imgOffset] !== 0) imgOffset++;
+                imgOffset++; // Skip null terminator
+                
+                // Skip picture type (1 byte)
+                imgOffset++;
+                
+                // Extract image data
+                const imageBlob = new Blob([uint8Array.subarray(imgOffset)], { type: 'image/jpeg' });
+                const imageUrl = URL.createObjectURL(imageBlob);
+                resolve(imageUrl);
+                return;
+              }
+              offset++;
+            }
+          } catch (error) {
+            console.error('Error extracting album art:', error);
+          }
+        }
+        
+        // If we couldn't extract album art or it's not an MP3 file
+        resolve(null);
+      };
+      
+      // Read the file as an ArrayBuffer
+      reader.readAsArrayBuffer(file);
+    });
+  };
+
   // Handle file selection
-  const handleFileSelect = (event) => {
+  const handleFileSelect = async (event) => {
     const file = event.target.files[0];
     if (file) {
       const audioUrl = URL.createObjectURL(file);
+      
+      // Try to extract album art
+      const artUrl = await extractAlbumArt(file);
+      setAlbumArt(artUrl);
+      
       setAudioFile({
         url: audioUrl,
         name: file.name,
@@ -105,6 +173,18 @@ const AudioPlayer = () => {
     }
   }, [audioFile, isPlaying]);
 
+  // Clean up resources when component unmounts
+  useEffect(() => {
+    return () => {
+      if (audioFile) {
+        URL.revokeObjectURL(audioFile.url);
+      }
+      if (albumArt) {
+        URL.revokeObjectURL(albumArt);
+      }
+    };
+  }, [audioFile, albumArt]);
+
   return (
     <div className="audio-player">
       {!audioFile ? (
@@ -124,7 +204,11 @@ const AudioPlayer = () => {
         <div className="player-controls">
           <div className="audio-info">
             <div className="audio-thumbnail">
-              <div className="audio-icon">👗</div>
+              {albumArt ? (
+                <img src={albumArt} alt="Album Art" className="album-art" />
+              ) : (
+                <div className="audio-icon">🎵</div>
+              )}
             </div>
             <div className="audio-title">
               {audioFile.name}
@@ -154,7 +238,7 @@ const AudioPlayer = () => {
             </div>
             
             <div className="volume-controls">
-              <span className="volume-icon">{volume > 0 ? '👊' : '💃'}</span>
+              <span className="volume-icon">{volume > 0 ? '🔊' : '🔇'}</span>
               <input
                 type="range"
                 className="volume-slider"
