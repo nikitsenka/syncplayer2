@@ -1,6 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
 import './AudioPlayer.css';
-
 import defaultAlbumArt from '../../assets/default-album-art.png';
 
 const AudioPlayer = () => {
@@ -9,7 +8,7 @@ const AudioPlayer = () => {
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
   const [volume, setVolume] = useState(1);
-  const [albumArt, setAlbumArt] = useState('https://via.placeholder.com/300x300/bfbfbf/555?text=Music+Art');
+  const [albumArt, setAlbumArt] = useState(defaultAlbumArt);
   const [audioName, setAudioName] = useState('No file selected');
   
   const audioRef = useRef(null);
@@ -30,16 +29,108 @@ const AudioPlayer = () => {
 
   // Handle image load errors
   const handleImageError = () => {
-    // Use a local fallback image instead
-    setAlbumArt('https://via.placeholder.com/300x300/444/666?text=Music+Player');
+    // Use local fallback image
+    setAlbumArt(defaultAlbumArt);
   };
 
-  // Extract album art if available in audio metadata
+  // Extract album art from the audio file's metadata
   const extractAlbumArt = (file) => {
-    // This is a simplified version for demonstration
-    // In a real world scenario, you'd use a library like music-metadata-browser
-    // For now, we'll use a reliable placeholder service
-    setAlbumArt('https://via.placeholder.com/300x300/28a3d3/ffffff?text=Music+Art');
+    // Set the default album art immediately while we extract the actual art
+    setAlbumArt(defaultAlbumArt);
+    
+    const reader = new FileReader();
+    
+    reader.onload = (e) => {
+      const arrayBuffer = e.target.result;
+      // Parsing ID3 tags for MP3 files
+      try {
+        const bytes = new Uint8Array(arrayBuffer);
+        
+        // ID3 tags start with "fflag "ID3"
+        if (bytes[0] === 73 && bytes[1] === 68 && bytes[2] === 51) { // "ID3" in ASCII
+          // Version and flags            
+          const version = bytes[3];
+          const flags = bytes[4];
+          
+          // Tag size, unsynchronised size (four bytes where the MSB = 0)
+          const tagSize = bytes[9] | (bytes[8] << 7) | (bytes[7] << 14) | (bytes[6] << 21) + 10;
+
+          // Skip to the start of the tags (10 is the size of the ID3 header)
+          let offset = 10;
+          
+          // Search for the APIC (picture) frame
+          while (offset < tagSize) {
+            // Check if this is the APIC frame
+            if (
+              bytes[offset] === 65 && // 'A'
+              bytes[offset+1] === 80 && // 'P'
+              bytes[offset+2] === 73 && // 'I'
+              bytes[offset+3] === 67    // 'C'
+            ) {
+              // Found APIC frame, need to parse it
+              // Frame size is stored at offset+4 to offset+8
+              const frameSize = bytes[offset+7] | (bytes[offset+6] << 8) | (bytes[offset+5] << 16) | (bytes[offset+4] << 24);
+              const frameHeaderSize = 10; // Header is 10 bytes
+              
+              // Now jump past the frame header and text encoding (1 byte) and mime type (variable length, null terminated)
+              let imgDataOffset = offset + frameHeaderSize + 1; // Skip header and text encoding
+              
+              // Skip mime type (search for null terminator)
+              while (bytes[imgDataOffset] !== 0) {
+                imgDataOffset++;
+                if (imgDataOffset - offset > frameSize) break; // Safety check
+              }
+              imgDataOffset++; // Skip the null terminator
+
+              // Skip picture type (1 byte) and description (variable length, null terminated)
+              imgDataOffset++; // Skip picture type
+              
+              // Skip description
+              while (bytes[imgDataOffset] !== 0) {
+                imgDataOffset++;
+                if (imgDataOffset - offset > frameSize) break; // Safety check
+              }
+              imgDataOffset++; // Skip the null terminator
+
+              // Now imgDataOffset should point to the image data
+              // Check for JPEG or PNG headers
+              let imageType = 'image/jpeg'; // Default
+              if (bytes[imgDataOffset] === 137 && bytes[imgDataOffset+1] === 80) { // PNG header (139, 80 = "MP" in ASCII)
+                imageType = 'image/png';
+              }
+
+              // Create a Blob from the image data and create a URL for it
+              const imageData = arrayBuffer.slice(imgDataOffset);
+              const blob = new Blob([imageData], { type: imageType });
+              const imageUrl = URL.createObjectURL(blob);
+              
+              // Set the album art
+              setAlbumArt(imageUrl);
+              return; // We found and processed the image data, so return
+            }
+            
+            // Not an APIC frame, move to next frame
+            // Frame size is stored at offset+4 to offset+8
+            const frameSize = bytes[offset+7] | (bytes[offset+6] << 8) | (bytes[offset+5] << 16) | (bytes[offset+4] << 24);
+            offset += 10 + frameSize; // Skip frame header (10 bytes) and frame content
+          }
+        }
+                
+        // If we reached here, we couldn't extract the album art, so use the default
+        setAlbumArt(defaultAlbumArt);
+      } catch (error) {
+        console.error('Error extracting album art:', error);
+        setAlbumArt(defaultAlbumArt);
+      }
+    };
+                   
+    reader.onerror = () => {
+      console.error('Error reading file');
+      setAlbumArt(defaultAlbumArt);
+    };
+    
+    // Read the file as an ArrayBuffer to access binary data
+    reader.readAsArrayBuffer(file);
   };
 
   // Handle play/pause toggle
@@ -134,7 +225,7 @@ const AudioPlayer = () => {
       <div className="file-selection">
         <input 
           type="file"
-          accept=".audio/*,.audio/mp3,.audio/wav,.audio/ogg"
+          accept=".mp3,.wav,.ogg,audio/*"
           onChange={handleFileChange}
           id="audio-file-input"
           className="hidden-input"
@@ -150,7 +241,7 @@ const AudioPlayer = () => {
             <img 
               ref={imgRef}
               src={albumArt} 
-              alt="Agbum Art" 
+              alt="Album Art" 
               onError={handleImageError}
             />
           </div>
