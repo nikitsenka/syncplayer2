@@ -12,3 +12,79 @@
   font-size: calc(10px + 2vmin);
   color: white;
 }
+
+.audio-player {
+  background-color: #1e2128;
+  border-radius: 8px;
+  padding: 20px;
+  width: 80%;
+  max-width: 500px;
+  margin: 20px auto;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+.audio-controls {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 15px;
+}
+
+.audio-info {
+  display: flex;
+  justify-content: space-between;
+  margin: 10px 0;
+  font-size: 14px;
+  color: #ccc;
+}
+
+.audio-image {
+  background-color: #444;
+  border-radius: 4px;
+  height: 120px;
+  width: 120px;
+  margin: 0 auto 15px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.seek-bar {
+  width: 100%;
+  margin: 10px 0;
+}
+
+.volume-control {
+  display: flex;
+  align-items: center;
+  margin-top: 10px;
+}
+
+.volume-control label {
+  margin-right: 10px;
+  font-size: 14px;
+  color: #ccc;
+}
+
+button {
+  background-color: #4CAF50;
+  border: none;
+  color: white;
+  padding: 10px 15px;
+  text-align: center;
+  text-decoration: none;
+  display: inline-block;
+  font-size: 16px;
+  margin: 4px 2px;
+  cursor: pointer;
+  border-radius: 4px;
+}
+
+button:hover {
+  background-color: #45a049;
+}
+
+input[type=range] {
+  width: 100%;
+  margin: 0;
+}
