@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+import AudioPlayer from './components/AudioPlayer';
 import './App.css';
 
 function App() {
@@ -24,6 +25,9 @@ function App() {
       <header className="App-header">
         <h1>SyncPlayer</h1>
         <p>{message}</p>
+        <div className="audio-player-container">
+          <AudioPlayer />
+        </div>
       </header>
     </div>
   );
