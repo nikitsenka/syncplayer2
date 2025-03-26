@@ -1,11 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import AudioPlayer from './components/AudioPlayer/AudioPlayer';
-import * as jsmediatags from 'jsmediatags';
 import './App.css';
-
-// Make jsmediatags available globally
-window.jsmediatags = jsmediatags;
 
 function App() {
   const [message, setMessage] = useState('Loading...');

@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
+import * as mmb from 'music-metadata-browser';
 import './AudioPlayer.css';
 
 const AudioPlayer = () => {
@@ -13,37 +14,15 @@ const AudioPlayer = () => {
   // A more robust approach for extracting album art
   const extractAlbumArt = async (file) => {
     try {
-      // Use jsmediatags library if available (you would need to install it)
-      if (window.jsmediatags) {
-        return new Promise((resolve) => {
-          window.jsmediatags.read(file, {
-            onSuccess: function(tag) {
-              try {
-                const picture = tag.tags.picture;
-                if (picture) {
-                  const data = picture.data;
-                  const format = picture.format;
-                  let base64String = "";
-                  
-                  for (let i = 0; i < data.length; i++) {
-                    base64String += String.fromCharCode(data[i]);
-                  }
-                  
-                  const dataUrl = `data:${format};base64,${window.btoa(base64String)}`;
-                  resolve(dataUrl);
-                } else {
-                  resolve(null);
-                }
-              } catch (error) {
-                console.error("Error processing album art:", error);
-                resolve(null);
-              }
-            },
-            onError: function() {
-              resolve(null);
-            }
-          });
-        });
+      // Use music-metadata-browser to parse audio metadata
+      const metadata = await mmb.parseBlob(file);
+      
+      // Check if there's a picture in the metadata
+      if (metadata.common.picture && metadata.common.picture.length > 0) {
+        const picture = metadata.common.picture[0];
+        const blob = new Blob([picture.data], { type: picture.format });
+        const url = URL.createObjectURL(blob);
+        return url;
       }
       
       // Fallback method using web audio API
