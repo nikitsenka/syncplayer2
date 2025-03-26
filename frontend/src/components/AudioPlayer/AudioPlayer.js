@@ -1,17 +1,20 @@
 import React, { useState, useRef, useEffect } from 'react';
 import './AudioPlayer.css';
 
+import defaultAlbumArt from '../../assets/default-album-art.png';
+
 const AudioPlayer = () => {
   const [audioFile, setAudioFile] = useState(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
   const [volume, setVolume] = useState(1);
-  const [albumArt, setAlbumArt] = useState(null);
+  const [albumArt, setAlbumArt] = useState('https://via.placeholder.com/300x300/bfbfbf/555?text=Music+Art');
   const [audioName, setAudioName] = useState('No file selected');
   
   const audioRef = useRef(null);
   const progressRef = useRef(null);
+  const imgRef = useRef(null);
 
   // Handle file selection
   const handleFileChange = (event) => {
@@ -25,12 +28,18 @@ const AudioPlayer = () => {
     }
   };
 
+  // Handle image load errors
+  const handleImageError = () => {
+    // Use a local fallback image instead
+    setAlbumArt('https://via.placeholder.com/300x300/444/666?text=Music+Player');
+  };
+
   // Extract album art if available in audio metadata
   const extractAlbumArt = (file) => {
     // This is a simplified version for demonstration
     // In a real world scenario, you'd use a library like music-metadata-browser
-    // For now, we'll use a placeholder
-    setAlbumArt('https://placehold.it/300x300?text=Music+Art');        
+    // For now, we'll use a reliable placeholder service
+    setAlbumArt('https://via.placeholder.com/300x300/28a3d3/ffffff?text=Music+Art');
   };
 
   // Handle play/pause toggle
@@ -137,11 +146,14 @@ const AudioPlayer = () => {
 
       {audioFile && (
         <div className="player-container">
-          {albumArt && (
-            <div className="album-art">
-              <img src={albumArt} alt="Album Art" />
-            </div>
-          )}
+          <div className="album-art">
+            <img 
+              ref={imgRef}
+              src={albumArt} 
+              alt="Agbum Art" 
+              onError={handleImageError}
+            />
+          </div>
           
           <div className="audio-info">
             <div className="audio-name">{audioName}</div>
